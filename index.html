@@ -190,6 +190,10 @@ header p{max-width:720px;line-height:1.55}
 .coordinator-badge{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:800;margin-left:5px}
 .beneficiary-detail{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin:10px 0;font-size:13px;line-height:1.65}
 
+
+/* ===== Delete post ===== */
+.delete-post-btn{margin-top:10px;border:1px solid #fecaca;background:#fff;color:#b91c1c;border-radius:9px;padding:9px 12px;font-weight:800;cursor:pointer}
+.delete-post-btn:hover{background:#fef2f2}
 </style>
 </head>
 <body>
@@ -877,6 +881,34 @@ async function enrichItems(){
 }
 
 function closeDetail(){document.getElementById('detailModal').classList.remove('open')}
+
+async function deletePost(id){
+ const x=data.find(r=>String(r.id)===String(id));
+ if(!x)return alert('ไม่พบโพสต์นี้');
+ const canDelete=!!session && (session.user?.id===x.user_id || IS_ADMIN);
+ if(!canDelete)return alert('บัญชีนี้ไม่มีสิทธิ์ลบโพสต์นี้');
+
+ const code=postCode(x);
+ if(!confirm(`ยืนยันลบโพสต์ ${code}?\n\nเมื่อลบแล้วจะไม่สามารถกู้คืนจากหน้าเว็บได้`))return;
+
+ try{
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/requests?id=eq.${encodeURIComponent(id)}`,{
+   method:'DELETE',
+   headers:h({'Prefer':'return=representation'})
+  });
+  if(!r.ok)throw new Error(await r.text());
+  const deleted=await r.json();
+  if(!deleted.length)throw new Error('ไม่พบโพสต์หรือไม่มีสิทธิ์ลบ');
+
+  closeDetail();
+  await loadData();
+  alert(`ลบโพสต์ ${code} เรียบร้อยแล้ว`);
+ }catch(e){
+  console.error(e);
+  alert('ลบโพสต์ไม่สำเร็จ: '+(e.message||e));
+ }
+}
+
 function showDetail(id){
  const x=data.find(v=>String(v.id)===String(id)); if(!x)return;
  const canEdit=!!CURRENT_USER&&(x.user_id===CURRENT_USER.id||IS_ADMIN);
@@ -898,7 +930,7 @@ function showDetail(id){
  const contact=`<div class="detail-contact"><h3 style="margin-top:0">👤 ข้อมูลติดต่อ</h3><div><b>ผู้ติดต่อ:</b> ${esc(x.contact_name||'-')}</div><div style="margin-top:6px"><b>โทรศัพท์ / LINE:</b> ${esc(phone||'-')}</div>${tel?`<div class="detail-actions"><a class="primary" href="tel:${esc(tel)}">📞 โทรหา</a></div>`:''}</div>`;
  const loc=`<div class="detail-section"><h3>📍 สถานที่</h3><p>${esc([x.district,x.province].filter(Boolean).join(', ')||'-')}</p>${(x.latitude!=null&&x.longitude!=null)?`<div class="map-nav-actions"><a class="map-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.latitude+','+x.longitude)}" target="_blank" rel="noopener">🗺️ ดูตำแหน่ง</a><a class="map-link" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(x.latitude+','+x.longitude)}&travelmode=driving" target="_blank" rel="noopener">🚗 นำทาง</a></div>`:''}</div>`;
  const gallery=((x._images||[]).length)?`<div class="detail-section"><h3>📷 รูปภาพ</h3><div class="detail-gallery">${x._images.slice(0,5).map(im=>`<a href="${esc(im.image_url)}" target="_blank" rel="noopener"><img src="${esc(im.image_url)}" alt="ภาพประกอบ" loading="lazy"></a>`).join('')}</div></div>`:'';
- document.getElementById('detailContent').innerHTML=`${postMetaHtml(x,true)}<span class="badge">${typeName[x.type]||esc(x.type)}</span>${listing}${x.details?`<div class="detail-section"><h3>📝 รายละเอียดเพิ่มเติม</h3><p>${esc(x.details)}</p></div>`:''}${beneficiary}${contact}${loc}${gallery}${canEdit?`<button type="button" class="secondary" onclick="closeDetail();editEntry(${JSON.stringify(x.id)})">✏️ แก้ไขโพสต์</button>`:''}`;
+ document.getElementById('detailContent').innerHTML=`${postMetaHtml(x,true)}<span class="badge">${typeName[x.type]||esc(x.type)}</span>${listing}${x.details?`<div class="detail-section"><h3>📝 รายละเอียดเพิ่มเติม</h3><p>${esc(x.details)}</p></div>`:''}${beneficiary}${contact}${loc}${gallery}${canEdit?`<button type="button" class="secondary" onclick="closeDetail();editEntry(${JSON.stringify(x.id)})">✏️ แก้ไขโพสต์</button><button type="button" class="delete-post-btn" onclick="deletePost(${JSON.stringify(x.id)})">🗑️ ลบโพสต์</button>`:''}`;
  document.getElementById('detailModal').classList.add('open');
 }
 function updateStatusFilter(){
