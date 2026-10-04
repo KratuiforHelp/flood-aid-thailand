@@ -807,7 +807,7 @@ async function saveEntry(e){
    row.user_id=CURRENT_USER.id;
    const r=await fetch(`${SUPABASE_URL}/rest/v1/requests`,{method:'POST',headers:{
     'apikey':SUPABASE_KEY,
-    'Authorization':`Bearer ${session.access_token}`,
+    'Authorization':'Bearer '+authToken(),
     'Prefer':'return=representation'
    },body:JSON.stringify(row)});
    if(!r.ok)throw new Error(await r.text());
@@ -887,12 +887,12 @@ async function enrichItems(){
 function closeDetail(){document.getElementById('detailModal').classList.remove('open')}
 
 function canEditPost(x){
- return !!session && (session.user?.id===x.user_id || IS_ADMIN);
+ return !!CURRENT_USER && (CURRENT_USER.id===x.user_id || IS_ADMIN);
 }
 async function deletePost(id){
  const x=data.find(r=>String(r.id)===String(id));
  if(!x)return alert('ไม่พบโพสต์นี้');
- const canDelete=!!session && (session.user?.id===x.user_id || IS_ADMIN || canEditPost(x));
+ const canDelete=canEditPost(x);
  if(!canDelete)return alert('บัญชีนี้ไม่มีสิทธิ์ลบโพสต์นี้');
 
  const code=postCode(x);
@@ -903,7 +903,7 @@ async function deletePost(id){
    method:'DELETE',
    headers:{
     'apikey':SUPABASE_KEY,
-    'Authorization':`Bearer ${session.access_token}`,
+    'Authorization':'Bearer '+authToken(),
     'Prefer':'return=representation'
    }
   });
