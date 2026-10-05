@@ -1036,7 +1036,7 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
 document.getElementById('detailModal').addEventListener('click',e=>{if(e.target.id==='detailModal')closeDetail()});
 renderAuth();
 updateStatusFilter();
-if(valid()) loadData();
+if(valid()) (async()=>{ await checkAdmin(); renderAuth(); await loadData(); })();
 </script>
 
 <button id="mobileAddBtn" class="primary fab-add" type="button" onclick="openForm()">＋ เพิ่มรายการ</button>
