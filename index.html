@@ -1103,7 +1103,8 @@ function recommendationLabel(x){
  return '🤝 อาสาขนส่ง / แรงงาน';
 }
 function matchRecommendations(source){
- if(!isMatchActive(source))return '';
+ if(!isMatchActive(source))
+  return `<div class="match-box"><div class="match-title">✨ รายการแนะนำ</div><div class="match-empty">รายการนี้ปิดหรือดำเนินการเสร็จแล้ว จึงไม่มีรายการแนะนำเพิ่มเติม</div></div>`;
  const matches=data.map(x=>({x,m:scorePair(source,x)}))
    .filter(z=>z.m).sort((a,b)=>b.m.score-a.m.score).slice(0,4);
  if(!matches.length)return `<div class="match-box"><div class="match-title">✨ รายการแนะนำ</div><div class="match-empty">ยังไม่พบรายการที่เหมาะสมและยังเปิดอยู่ในขณะนี้</div></div>`;
@@ -1225,6 +1226,12 @@ function homeCardSummary(x){
  const originalRender=render;
  render=function(){
   originalRender();
+  document.querySelectorAll('#list *').forEach(el=>{
+  if(el.children.length===0 && el.textContent.trim()==='undefined'){
+    el.textContent='';
+    el.style.display='none';
+  }
+});
   document.querySelectorAll('#list .item').forEach(card=>{
    const btn=card.querySelector('.view-detail-btn');
    if(!btn)return;
@@ -1232,7 +1239,7 @@ function homeCardSummary(x){
    if(x && !card.querySelector('.home-card-new')){
     card.insertAdjacentHTML('afterbegin',homeCardSummary(x));
     const summary=card.querySelector('.home-card-new');
-    if(summary && isMatchActive(x))summary.insertAdjacentHTML('beforeend',matchRecommendations(x));
+    if(summary)summary.insertAdjacentHTML('beforeend',matchRecommendations(x));
    }
    const txt=card.textContent||'';
    if(txt.includes('วิกฤต'))card.classList.add('critical-card');
