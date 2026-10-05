@@ -1036,7 +1036,7 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
 document.getElementById('detailModal').addEventListener('click',e=>{if(e.target.id==='detailModal')closeDetail()});
 renderAuth();
 updateStatusFilter();
-if(SUPABASE_URL){document.getElementById('sbUrl').value=SUPABASE_URL;document.getElementById('sbKey').value=SUPABASE_KEY;connectSupabase()}
+if(valid()) loadData();
 </script>
 
 <button id="mobileAddBtn" class="primary fab-add" type="button" onclick="openForm()">＋ เพิ่มรายการ</button>
