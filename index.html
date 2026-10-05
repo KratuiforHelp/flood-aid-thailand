@@ -1226,12 +1226,7 @@ function homeCardSummary(x){
  const originalRender=render;
  render=function(){
   originalRender();
-  document.querySelectorAll('#list *').forEach(el=>{
-  if(el.children.length===0 && el.textContent.trim()==='undefined'){
-    el.textContent='';
-    el.style.display='none';
-  }
-});
+  
   document.querySelectorAll('#list .item').forEach(card=>{
    const btn=card.querySelector('.view-detail-btn');
    if(!btn)return;
